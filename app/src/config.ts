@@ -6,31 +6,31 @@ export interface BotConfiguration {
   network: "mainnet-beta" | "devnet" | "testnet" | "localnet";
   rpcUrl: string;
   commitment: "processed" | "confirmed" | "finalized";
-  
+
   // Bot settings
   botName: string;
   strategy: StrategyConfig;
   riskParameters: RiskParameters;
-  
+
   // Execution settings
-  executionInterval: number;      // How often to check conditions (ms)
-  priceUpdateInterval: number;    // How often to update prices (ms)
-  
+  executionInterval: number; // How often to check conditions (ms)
+  priceUpdateInterval: number; // How often to update prices (ms)
+
   // Token settings
   tokens: {
     base: TokenConfig;
     quote: TokenConfig;
   };
-  
+
   // Jupiter/DEX settings
   jupiterApiUrl: string;
   slippageBps: number;
-  
+
   // Monitoring and alerts
   monitoring: MonitoringConfig;
-  
+
   // Emergency settings
-  emergencyContacts: string[];    // Email addresses or webhook URLs
+  emergencyContacts: string[]; // Email addresses or webhook URLs
   emergencyStopConditions: EmergencyStopConfig;
 }
 
@@ -110,7 +110,7 @@ export const defaultConfigs: Record<string, Partial<BotConfiguration>> = {
       minLiquidityUsd: 1000,
     },
   },
-  
+
   production: {
     network: "mainnet-beta",
     rpcUrl: "https://api.mainnet-beta.solana.com",
@@ -157,7 +157,7 @@ export const tokenConfigs: Record<string, TokenConfig> = {
       coingeckoId: "solana",
     },
   },
-  
+
   USDC: {
     mint: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
     symbol: "USDC",
@@ -167,7 +167,7 @@ export const tokenConfigs: Record<string, TokenConfig> = {
       coingeckoId: "usd-coin",
     },
   },
-  
+
   USDT: {
     mint: new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"),
     symbol: "USDT",
@@ -177,7 +177,7 @@ export const tokenConfigs: Record<string, TokenConfig> = {
       coingeckoId: "tether",
     },
   },
-  
+
   RAY: {
     mint: new PublicKey("4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R"),
     symbol: "RAY",
@@ -195,12 +195,12 @@ export const strategyConfigs = {
     type: "grid" as const,
     parameters: {
       gridLevels: 10,
-      priceRange: 0.20, // 20% range
+      priceRange: 0.2, // 20% range
       gridSpacing: 0.02, // 2% between levels
       rebalanceThreshold: 0.05, // 5% deviation
     },
   },
-  
+
   dca: {
     type: "dca" as const,
     parameters: {
@@ -210,7 +210,7 @@ export const strategyConfigs = {
       maxBuys: 10, // Maximum 10 buys per cycle
     },
   },
-  
+
   arbitrage: {
     type: "arbitrage" as const,
     parameters: {
@@ -219,7 +219,7 @@ export const strategyConfigs = {
       maxExecutionTime: 30000, // 30 seconds
     },
   },
-  
+
   meanReversion: {
     type: "meanReversion" as const,
     parameters: {
@@ -233,13 +233,16 @@ export const strategyConfigs = {
 
 export class ConfigurationManager {
   private config: BotConfiguration;
-  
+
   constructor(environment: string = "development") {
-    const baseConfig = defaultConfigs[environment] || defaultConfigs.development;
+    const baseConfig =
+      defaultConfigs[environment] || defaultConfigs.development;
     this.config = this.mergeConfigs(baseConfig);
   }
-  
-  private mergeConfigs(baseConfig: Partial<BotConfiguration>): BotConfiguration {
+
+  private mergeConfigs(
+    baseConfig: Partial<BotConfiguration>
+  ): BotConfiguration {
     return {
       network: "devnet",
       rpcUrl: "https://api.devnet.solana.com",
@@ -282,54 +285,57 @@ export class ConfigurationManager {
       ...baseConfig,
     };
   }
-  
+
   getConfig(): BotConfiguration {
     return { ...this.config };
   }
-  
+
   updateConfig(updates: Partial<BotConfiguration>): void {
     this.config = { ...this.config, ...updates };
   }
-  
+
   loadFromFile(filePath: string): void {
     try {
-      const fs = require('fs');
-      const fileContent = fs.readFileSync(filePath, 'utf8');
+      const fs = require("fs");
+      const fileContent = fs.readFileSync(filePath, "utf8");
       const configFromFile = JSON.parse(fileContent);
       this.config = { ...this.config, ...configFromFile };
     } catch (error) {
       console.error("Failed to load config from file:", error);
     }
   }
-  
+
   saveToFile(filePath: string): void {
     try {
-      const fs = require('fs');
+      const fs = require("fs");
       fs.writeFileSync(filePath, JSON.stringify(this.config, null, 2));
     } catch (error) {
       console.error("Failed to save config to file:", error);
     }
   }
-  
+
   validateConfig(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     if (!this.config.rpcUrl) {
       errors.push("RPC URL is required");
     }
-    
-    if (this.config.riskParameters.maxPositionSize <= 0 || this.config.riskParameters.maxPositionSize > 100) {
+
+    if (
+      this.config.riskParameters.maxPositionSize <= 0 ||
+      this.config.riskParameters.maxPositionSize > 100
+    ) {
       errors.push("Max position size must be between 0 and 100 percent");
     }
-    
+
     if (this.config.slippageBps < 0 || this.config.slippageBps > 10000) {
       errors.push("Slippage must be between 0 and 10000 basis points");
     }
-    
+
     if (this.config.executionInterval < 1000) {
       errors.push("Execution interval must be at least 1000ms");
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors,

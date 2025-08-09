@@ -1,4 +1,8 @@
-import { TradingBotClient, StrategyConfig, BotConfig } from "./trading-bot-client";
+import {
+  TradingBotClient,
+  StrategyConfig,
+  BotConfig,
+} from "./trading-bot-client";
 import { PublicKey, Keypair } from "@solana/web3.js";
 
 async function main() {
@@ -27,7 +31,7 @@ async function main() {
     // Initialize the bot
     console.log("Initializing trading bot...");
     await botClient.initializeBot(config.strategy, config.initialBalance);
-    
+
     // Get bot information
     console.log("Bot info:", await botClient.getBotInfo());
 
@@ -40,7 +44,7 @@ async function main() {
       buyThreshold: 45,
       sellThreshold: 65,
     };
-    
+
     console.log("Updating strategy...");
     await botClient.updateStrategy(newStrategy);
 
@@ -54,7 +58,6 @@ async function main() {
     // Example of withdrawing funds
     console.log("Withdrawing 10 USDC...");
     await botClient.withdrawFunds(10_000_000);
-
   } catch (error) {
     console.error("Error:", error);
   }

@@ -1,15 +1,15 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { 
-  PublicKey, 
-  Keypair, 
+import {
+  PublicKey,
+  Keypair,
   Connection,
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
   Transaction,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
-import { SolanaTradingBot } from "../target/types/solana_trading_bot";
+import { SolanaTradingBot } from "../../target/types/solana_trading_bot";
 
 export interface StrategyConfig {
   strategyType: "GridTrading" | "DCA" | "Arbitrage" | "MeanReversion";
@@ -41,18 +41,21 @@ export class TradingBotClient {
   constructor(config: BotConfig) {
     this.connection = new Connection(config.rpcUrl, "confirmed");
     this.authority = Keypair.fromSecretKey(config.privateKey);
-    
+
     const wallet = new anchor.Wallet(this.authority);
     this.provider = new anchor.AnchorProvider(this.connection, wallet, {
       commitment: "confirmed",
     });
-    
+
     anchor.setProvider(this.provider);
-    
+
     // Initialize program (you'll need to provide the actual program ID)
-    const programId = new PublicKey("EroGopwwQVYXgbMZigR1UvQ9xZh7fviL4897ZUvYtt2F");
-    this.program = anchor.workspace.SolanaTradingBot as Program<SolanaTradingBot>;
-    
+    const programId = new PublicKey(
+      "EroGopwwQVYXgbMZigR1UvQ9xZh7fviL4897ZUvYtt2F"
+    );
+    this.program = anchor.workspace
+      .SolanaTradingBot as Program<SolanaTradingBot>;
+
     // Derive bot account address
     [this.botAccount] = PublicKey.findProgramAddressSync(
       [Buffer.from("trading-bot"), this.authority.publicKey.toBuffer()],
@@ -60,10 +63,29 @@ export class TradingBotClient {
     );
   }
 
-  async initializeBot(config: StrategyConfig, initialBalance: number): Promise<string> {
+  async initializeBot(
+    config: StrategyConfig,
+    initialBalance: number
+  ): Promise<string> {
     try {
+      // Convert string to proper enum format
+      const getStrategyType = (type: string) => {
+        switch (type.toLowerCase()) {
+          case "gridtrading":
+            return { gridTrading: {} };
+          case "dca":
+            return { dca: {} };
+          case "arbitrage":
+            return { arbitrage: {} };
+          case "meanreversion":
+            return { meanReversion: {} };
+          default:
+            return { gridTrading: {} };
+        }
+      };
+
       const strategy = {
-        strategyType: { [config.strategyType.toLowerCase()]: {} },
+        strategyType: getStrategyType(config.strategyType),
         tokenA: config.tokenA,
         tokenB: config.tokenB,
         buyThreshold: new anchor.BN(config.buyThreshold),
@@ -82,7 +104,6 @@ export class TradingBotClient {
       const tx = await this.program.methods
         .initializeBot(params)
         .accounts({
-          tradingBot: this.botAccount,
           authority: this.authority.publicKey,
           systemProgram: SystemProgram.programId,
         })
@@ -99,22 +120,41 @@ export class TradingBotClient {
 
   async updateStrategy(newStrategy: StrategyConfig): Promise<string> {
     try {
+      // Convert string to proper enum format
+      const getStrategyType = (type: string) => {
+        switch (type.toLowerCase()) {
+          case "gridtrading":
+            return { gridTrading: {} };
+          case "dca":
+            return { dca: {} };
+          case "arbitrage":
+            return { arbitrage: {} };
+          case "meanreversion":
+            return { meanReversion: {} };
+          default:
+            return { gridTrading: {} };
+        }
+      };
+
       const strategy = {
-        strategyType: { [newStrategy.strategyType.toLowerCase()]: {} },
+        strategyType: getStrategyType(newStrategy.strategyType),
         tokenA: newStrategy.tokenA,
         tokenB: newStrategy.tokenB,
         buyThreshold: new anchor.BN(newStrategy.buyThreshold),
         sellThreshold: new anchor.BN(newStrategy.sellThreshold),
         maxSlippage: newStrategy.maxSlippage,
         tradeAmount: new anchor.BN(newStrategy.tradeAmount),
-        stopLoss: newStrategy.stopLoss ? new anchor.BN(newStrategy.stopLoss) : null,
-        takeProfit: newStrategy.takeProfit ? new anchor.BN(newStrategy.takeProfit) : null,
+        stopLoss: newStrategy.stopLoss
+          ? new anchor.BN(newStrategy.stopLoss)
+          : null,
+        takeProfit: newStrategy.takeProfit
+          ? new anchor.BN(newStrategy.takeProfit)
+          : null,
       };
 
       const tx = await this.program.methods
         .updateStrategy({ strategy })
         .accounts({
-          tradingBot: this.botAccount,
           authority: this.authority.publicKey,
         })
         .signers([this.authority])
@@ -133,7 +173,6 @@ export class TradingBotClient {
       const tx = await this.program.methods
         .pauseBot()
         .accounts({
-          tradingBot: this.botAccount,
           authority: this.authority.publicKey,
         })
         .signers([this.authority])
@@ -153,7 +192,6 @@ export class TradingBotClient {
       const tx = await this.program.methods
         .resumeBot()
         .accounts({
-          tradingBot: this.botAccount,
           authority: this.authority.publicKey,
         })
         .signers([this.authority])
@@ -170,7 +208,9 @@ export class TradingBotClient {
 
   async getBotInfo(): Promise<any> {
     try {
-      const botAccount = await this.program.account.tradingBot.fetch(this.botAccount);
+      const botAccount = await this.program.account.tradingBot.fetch(
+        this.botAccount
+      );
       return {
         authority: botAccount.authority.toString(),
         isActive: botAccount.isActive,
@@ -201,7 +241,7 @@ export class TradingBotClient {
       try {
         // Check if bot should execute a trade
         const shouldTrade = await this.checkTradingConditions();
-        
+
         if (shouldTrade) {
           await this.executeTrade();
         }
@@ -223,7 +263,6 @@ export class TradingBotClient {
       const canTrade = await this.program.methods
         .checkStrategy()
         .accounts({
-          tradingBot: this.botAccount,
           authority: this.authority.publicKey,
         })
         .view();
@@ -239,7 +278,7 @@ export class TradingBotClient {
     try {
       // This would execute actual trades through Jupiter/Raydium
       console.log("Executing trade...");
-      
+
       // Example trade execution (placeholder)
       const tradeParams = {
         amount: new anchor.BN(1000000), // 1 USDC (6 decimals)
@@ -250,7 +289,6 @@ export class TradingBotClient {
       const tx = await this.program.methods
         .executeTrade(tradeParams)
         .accounts({
-          tradingBot: this.botAccount,
           authority: this.authority.publicKey,
         })
         .signers([this.authority])
@@ -263,7 +301,7 @@ export class TradingBotClient {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   async stopBot(): Promise<void> {
@@ -276,7 +314,6 @@ export class TradingBotClient {
       const tx = await this.program.methods
         .withdrawFunds(new anchor.BN(amount))
         .accounts({
-          tradingBot: this.botAccount,
           authority: this.authority.publicKey,
           systemProgram: SystemProgram.programId,
         })

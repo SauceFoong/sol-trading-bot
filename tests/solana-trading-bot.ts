@@ -1,6 +1,11 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { PublicKey, Keypair, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import {
+  PublicKey,
+  Keypair,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+} from "@solana/web3.js";
 import { SolanaTradingBot } from "../target/types/solana_trading_bot";
 import { expect } from "chai";
 
@@ -8,9 +13,10 @@ describe("Solana Trading Bot", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.SolanaTradingBot as Program<SolanaTradingBot>;
+  const program = anchor.workspace
+    .SolanaTradingBot as Program<SolanaTradingBot>;
   const authority = provider.wallet as anchor.Wallet;
-  
+
   let botAccount: PublicKey;
   let bump: number;
 
@@ -103,7 +109,7 @@ describe("Solana Trading Bot", () => {
           })
           .signers([newAuthority])
           .rpc();
-        
+
         expect.fail("Should have thrown an error");
       } catch (error) {
         console.log("Expected error:", error.message);
@@ -144,7 +150,7 @@ describe("Solana Trading Bot", () => {
 
     it("Should fail to update strategy with unauthorized user", async () => {
       const unauthorizedUser = Keypair.generate();
-      
+
       const newStrategy = {
         strategyType: { arbitrage: {} },
         tokenA: new PublicKey("So11111111111111111111111111111111111111112"),
@@ -166,7 +172,7 @@ describe("Solana Trading Bot", () => {
           })
           .signers([unauthorizedUser])
           .rpc();
-        
+
         expect.fail("Should have thrown an error");
       } catch (error) {
         console.log("Expected authorization error:", error.message);
@@ -255,7 +261,7 @@ describe("Solana Trading Bot", () => {
             authority: authority.publicKey,
           })
           .rpc();
-        
+
         expect.fail("Should have thrown an error");
       } catch (error) {
         console.log("Expected error - bot not active:", error.message);
@@ -338,7 +344,7 @@ describe("Solana Trading Bot", () => {
             systemProgram: SystemProgram.programId,
           })
           .rpc();
-        
+
         expect.fail("Should have thrown an error");
       } catch (error) {
         console.log("Expected insufficient funds error:", error.message);

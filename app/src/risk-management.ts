@@ -1,20 +1,20 @@
 import { PublicKey } from "@solana/web3.js";
 
 export interface RiskParameters {
-  maxPositionSize: number;        // Maximum position size as percentage of total balance
-  maxDailyLoss: number;          // Maximum daily loss in USD
-  maxSlippage: number;           // Maximum allowed slippage in basis points
-  cooldownPeriod: number;        // Minimum time between trades in seconds
-  emergencyStopLoss: number;     // Emergency stop loss percentage
-  maxDrawdown: number;           // Maximum portfolio drawdown
-  maxTradesPerDay: number;       // Maximum number of trades per day
-  minLiquidity: number;          // Minimum liquidity required for trades
+  maxPositionSize: number; // Maximum position size as percentage of total balance
+  maxDailyLoss: number; // Maximum daily loss in USD
+  maxSlippage: number; // Maximum allowed slippage in basis points
+  cooldownPeriod: number; // Minimum time between trades in seconds
+  emergencyStopLoss: number; // Emergency stop loss percentage
+  maxDrawdown: number; // Maximum portfolio drawdown
+  maxTradesPerDay: number; // Maximum number of trades per day
+  minLiquidity: number; // Minimum liquidity required for trades
 }
 
 export interface TradeRisk {
-  riskScore: number;             // 0-100, 100 being highest risk
-  reasoning: string[];           // Array of risk factors
-  approved: boolean;             // Whether the trade is approved
+  riskScore: number; // 0-100, 100 being highest risk
+  reasoning: string[]; // Array of risk factors
+  approved: boolean; // Whether the trade is approved
 }
 
 export class RiskManager {
@@ -51,25 +51,35 @@ export class RiskManager {
     // Check position size risk
     const positionPercent = (tradeAmount / portfolioBalance) * 100;
     if (positionPercent > this.riskParams.maxPositionSize) {
-      reasoning.push(`Position size (${positionPercent.toFixed(2)}%) exceeds maximum (${this.riskParams.maxPositionSize}%)`);
+      reasoning.push(
+        `Position size (${positionPercent.toFixed(2)}%) exceeds maximum (${
+          this.riskParams.maxPositionSize
+        }%)`
+      );
       riskScore += 30;
     }
 
     // Check slippage risk
     if (slippage > this.riskParams.maxSlippage) {
-      reasoning.push(`Slippage (${slippage}bps) exceeds maximum (${this.riskParams.maxSlippage}bps)`);
+      reasoning.push(
+        `Slippage (${slippage}bps) exceeds maximum (${this.riskParams.maxSlippage}bps)`
+      );
       riskScore += 25;
     }
 
     // Check daily trade limit
     if (this.dailyStats.totalTrades >= this.riskParams.maxTradesPerDay) {
-      reasoning.push(`Daily trade limit (${this.riskParams.maxTradesPerDay}) reached`);
+      reasoning.push(
+        `Daily trade limit (${this.riskParams.maxTradesPerDay}) reached`
+      );
       riskScore += 40;
     }
 
     // Check daily loss limit
     if (Math.abs(this.dailyStats.totalPnL) >= this.riskParams.maxDailyLoss) {
-      reasoning.push(`Daily loss limit ($${this.riskParams.maxDailyLoss}) exceeded`);
+      reasoning.push(
+        `Daily loss limit ($${this.riskParams.maxDailyLoss}) exceeded`
+      );
       riskScore += 50;
     }
 
@@ -78,21 +88,32 @@ export class RiskManager {
     if (lastTrade) {
       const timeSinceLastTrade = (Date.now() - lastTrade.timestamp) / 1000;
       if (timeSinceLastTrade < this.riskParams.cooldownPeriod) {
-        reasoning.push(`Cooldown period not met (${timeSinceLastTrade.toFixed(0)}s < ${this.riskParams.cooldownPeriod}s)`);
+        reasoning.push(
+          `Cooldown period not met (${timeSinceLastTrade.toFixed(0)}s < ${
+            this.riskParams.cooldownPeriod
+          }s)`
+        );
         riskScore += 20;
       }
     }
 
     // Check portfolio drawdown
     if (this.dailyStats.currentDrawdown >= this.riskParams.maxDrawdown) {
-      reasoning.push(`Portfolio drawdown (${this.dailyStats.currentDrawdown.toFixed(2)}%) exceeds maximum (${this.riskParams.maxDrawdown}%)`);
+      reasoning.push(
+        `Portfolio drawdown (${this.dailyStats.currentDrawdown.toFixed(
+          2
+        )}%) exceeds maximum (${this.riskParams.maxDrawdown}%)`
+      );
       riskScore += 45;
     }
 
     // Price volatility check
     const priceChange = Math.abs(targetPrice - currentPrice) / currentPrice;
-    if (priceChange > 0.05) { // 5% price change
-      reasoning.push(`High price volatility detected (${(priceChange * 100).toFixed(2)}%)`);
+    if (priceChange > 0.05) {
+      // 5% price change
+      reasoning.push(
+        `High price volatility detected (${(priceChange * 100).toFixed(2)}%)`
+      );
       riskScore += 15;
     }
 
@@ -106,7 +127,7 @@ export class RiskManager {
   recordTrade(trade: TradeRecord): void {
     this.tradeHistory.push(trade);
     this.updateDailyStats(trade);
-    
+
     // Keep only last 1000 trades to manage memory
     if (this.tradeHistory.length > 1000) {
       this.tradeHistory = this.tradeHistory.slice(-1000);
@@ -115,7 +136,7 @@ export class RiskManager {
 
   private updateDailyStats(trade: TradeRecord): void {
     const tradeDate = new Date(trade.timestamp).toDateString();
-    
+
     // Reset daily stats if new day
     if (this.dailyStats.date !== tradeDate) {
       this.dailyStats = this.initializeDailyStats();
@@ -124,7 +145,7 @@ export class RiskManager {
 
     this.dailyStats.totalTrades++;
     this.dailyStats.totalPnL += trade.pnl;
-    
+
     if (trade.pnl < 0) {
       this.dailyStats.maxLoss = Math.min(this.dailyStats.maxLoss, trade.pnl);
     }
@@ -156,7 +177,11 @@ export class RiskManager {
 
     // Check emergency stop loss
     if (this.dailyStats.currentDrawdown >= this.riskParams.emergencyStopLoss) {
-      reasons.push(`Emergency stop loss triggered (${this.dailyStats.currentDrawdown.toFixed(2)}%)`);
+      reasons.push(
+        `Emergency stop loss triggered (${this.dailyStats.currentDrawdown.toFixed(
+          2
+        )}%)`
+      );
     }
 
     // Check daily loss limit
@@ -215,25 +240,33 @@ export class RiskManager {
 
   private calculateWinRate(): number {
     if (this.tradeHistory.length === 0) return 0;
-    
-    const winningTrades = this.tradeHistory.filter(trade => trade.pnl > 0).length;
+
+    const winningTrades = this.tradeHistory.filter(
+      (trade) => trade.pnl > 0
+    ).length;
     return winningTrades / this.tradeHistory.length;
   }
 
   private calculateAverageReturn(): number {
     if (this.tradeHistory.length === 0) return 0;
-    
-    const totalReturn = this.tradeHistory.reduce((sum, trade) => sum + trade.pnl, 0);
+
+    const totalReturn = this.tradeHistory.reduce(
+      (sum, trade) => sum + trade.pnl,
+      0
+    );
     return totalReturn / this.tradeHistory.length;
   }
 
   private calculateSharpeRatio(): number {
     if (this.tradeHistory.length < 2) return 0;
 
-    const returns = this.tradeHistory.map(trade => trade.pnl);
-    const avgReturn = returns.reduce((sum, ret) => sum + ret, 0) / returns.length;
-    
-    const variance = returns.reduce((sum, ret) => sum + Math.pow(ret - avgReturn, 2), 0) / returns.length;
+    const returns = this.tradeHistory.map((trade) => trade.pnl);
+    const avgReturn =
+      returns.reduce((sum, ret) => sum + ret, 0) / returns.length;
+
+    const variance =
+      returns.reduce((sum, ret) => sum + Math.pow(ret - avgReturn, 2), 0) /
+      returns.length;
     const stdDev = Math.sqrt(variance);
 
     return stdDev > 0 ? avgReturn / stdDev : 0;
@@ -323,11 +356,17 @@ export class CircuitBreaker {
 
     if (this.failureCount >= this.failureThreshold) {
       this.isOpen = true;
-      console.error(`Circuit breaker OPENED after ${this.failureCount} failures`);
+      console.error(
+        `Circuit breaker OPENED after ${this.failureCount} failures`
+      );
     }
   }
 
-  getStatus(): { isOpen: boolean; failureCount: number; lastFailureTime: number } {
+  getStatus(): {
+    isOpen: boolean;
+    failureCount: number;
+    lastFailureTime: number;
+  } {
     return {
       isOpen: this.isOpen,
       failureCount: this.failureCount,

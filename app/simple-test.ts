@@ -1,16 +1,18 @@
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
-const PROGRAM_ID = new PublicKey("EroGopwwQVYXgbMZigR1UvQ9xZh7fviL4897ZUvYtt2F");
+const PROGRAM_ID = new PublicKey(
+  "EroGopwwQVYXgbMZigR1UvQ9xZh7fviL4897ZUvYtt2F"
+);
 
 async function testTradingBot() {
   console.log("🚀 Testing Solana Trading Bot on Devnet");
-  console.log("=" .repeat(50));
+  console.log("=".repeat(50));
 
   // Configure the client to use devnet
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
-  
+
   const program = anchor.workspace.SolanaTradingBot;
   console.log("📍 Program ID:", program.programId.toString());
 
@@ -26,9 +28,13 @@ async function testTradingBot() {
       2 * LAMPORTS_PER_SOL
     );
     await provider.connection.confirmTransaction(airdropSig);
-    
+
     const balance = await provider.connection.getBalance(testWallet.publicKey);
-    console.log("✅ Airdrop successful! Balance:", balance / LAMPORTS_PER_SOL, "SOL");
+    console.log(
+      "✅ Airdrop successful! Balance:",
+      balance / LAMPORTS_PER_SOL,
+      "SOL"
+    );
 
     // Derive bot account
     const [botAccount, bump] = PublicKey.findProgramAddressSync(
@@ -65,14 +71,21 @@ async function testTradingBot() {
       .rpc();
 
     console.log("✅ Bot initialized!");
-    console.log("📝 Transaction:", `https://explorer.solana.com/tx/${initTx}?cluster=devnet`);
+    console.log(
+      "📝 Transaction:",
+      `https://explorer.solana.com/tx/${initTx}?cluster=devnet`
+    );
 
     // Get bot info
     const bot = await program.account.tradingBot.fetch(botAccount);
     console.log("\n📊 Bot Information:");
     console.log("   Authority:", bot.authority.toString());
     console.log("   Active:", bot.isActive);
-    console.log("   Balance:", (bot.balance.toNumber() / 1_000_000).toFixed(2), "USDC");
+    console.log(
+      "   Balance:",
+      (bot.balance.toNumber() / 1_000_000).toFixed(2),
+      "USDC"
+    );
     console.log("   Strategy:", Object.keys(bot.strategy.strategyType)[0]);
     console.log("   Total Trades:", bot.totalTrades.toString());
 
@@ -80,7 +93,7 @@ async function testTradingBot() {
     console.log("\n📈 Testing price update...");
     const priceData = {
       tokenAPrice: new anchor.BN(35_000_000), // $35 SOL (below buy threshold)
-      tokenBPrice: new anchor.BN(1_000_000),  // $1 USDC
+      tokenBPrice: new anchor.BN(1_000_000), // $1 USDC
       timestamp: new anchor.BN(Math.floor(Date.now() / 1000)),
       confidence: 95,
     };
@@ -94,7 +107,10 @@ async function testTradingBot() {
       .rpc();
 
     console.log("✅ Price updated (should trigger buy signal)!");
-    console.log("📝 Transaction:", `https://explorer.solana.com/tx/${priceUpdateTx}?cluster=devnet`);
+    console.log(
+      "📝 Transaction:",
+      `https://explorer.solana.com/tx/${priceUpdateTx}?cluster=devnet`
+    );
 
     // Test trade execution
     console.log("\n⚡ Testing trade execution...");
@@ -113,14 +129,23 @@ async function testTradingBot() {
       .rpc();
 
     console.log("✅ Trade executed!");
-    console.log("📝 Transaction:", `https://explorer.solana.com/tx/${tradeTx}?cluster=devnet`);
+    console.log(
+      "📝 Transaction:",
+      `https://explorer.solana.com/tx/${tradeTx}?cluster=devnet`
+    );
 
     // Get updated bot info
     const updatedBot = await program.account.tradingBot.fetch(botAccount);
     console.log("\n📊 Updated Bot Stats:");
     console.log("   Total Trades:", updatedBot.totalTrades.toString());
-    console.log("   Successful Trades:", updatedBot.successfulTrades.toString());
-    console.log("   Last Trade:", new Date(updatedBot.lastTradeTimestamp.toNumber() * 1000).toLocaleString());
+    console.log(
+      "   Successful Trades:",
+      updatedBot.successfulTrades.toString()
+    );
+    console.log(
+      "   Last Trade:",
+      new Date(updatedBot.lastTradeTimestamp.toNumber() * 1000).toLocaleString()
+    );
 
     // Test pause/resume
     console.log("\n⏸️  Testing pause functionality...");
@@ -133,7 +158,10 @@ async function testTradingBot() {
       .rpc();
 
     console.log("✅ Bot paused!");
-    console.log("📝 Transaction:", `https://explorer.solana.com/tx/${pauseTx}?cluster=devnet`);
+    console.log(
+      "📝 Transaction:",
+      `https://explorer.solana.com/tx/${pauseTx}?cluster=devnet`
+    );
 
     console.log("\n▶️  Testing resume functionality...");
     const resumeTx = await program.methods
@@ -145,13 +173,21 @@ async function testTradingBot() {
       .rpc();
 
     console.log("✅ Bot resumed!");
-    console.log("📝 Transaction:", `https://explorer.solana.com/tx/${resumeTx}?cluster=devnet`);
+    console.log(
+      "📝 Transaction:",
+      `https://explorer.solana.com/tx/${resumeTx}?cluster=devnet`
+    );
 
     console.log("\n🎉 All tests completed successfully!");
     console.log("\n📋 Summary:");
     console.log("   Bot Account:", botAccount.toString());
-    console.log("   Explorer:", `https://explorer.solana.com/address/${botAccount.toString()}?cluster=devnet`);
-    console.log("   Transactions: 5 (init, price update, trade, pause, resume)");
+    console.log(
+      "   Explorer:",
+      `https://explorer.solana.com/address/${botAccount.toString()}?cluster=devnet`
+    );
+    console.log(
+      "   Transactions: 5 (init, price update, trade, pause, resume)"
+    );
 
     console.log("\n📊 Next: Monitor this bot using the dashboard:");
     console.log(`   npm run monitor ${botAccount.toString()}`);
@@ -161,7 +197,6 @@ async function testTradingBot() {
       botAccount: botAccount.toString(),
       transactions: [initTx, priceUpdateTx, tradeTx, pauseTx, resumeTx],
     };
-
   } catch (error) {
     console.error("❌ Test failed:", error);
     return {
@@ -171,7 +206,7 @@ async function testTradingBot() {
   }
 }
 
-testTradingBot().then(result => {
+testTradingBot().then((result) => {
   if (result.success) {
     console.log("\n✅ Testing completed successfully!");
     process.exit(0);

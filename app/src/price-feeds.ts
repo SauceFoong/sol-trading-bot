@@ -16,9 +16,13 @@ export class PriceFeedManager {
   constructor(connection: Connection) {
     this.connection = connection;
     // Pyth Network Program ID
-    this.pythProgram = new PublicKey("FsJ3A3u2vn5cTVofAjvy6y5kwABJAqYWpe4975bi2epH");
+    this.pythProgram = new PublicKey(
+      "FsJ3A3u2vn5cTVofAjvy6y5kwABJAqYWpe4975bi2epH"
+    );
     // Chainlink Program ID (placeholder)
-    this.chainlinkProgram = new PublicKey("HEvSKofvBgfaexv23kMabbYqxasxU3mQ4ibBMEmJWHny");
+    this.chainlinkProgram = new PublicKey(
+      "HEvSKofvBgfaexv23kMabbYqxasxU3mQ4ibBMEmJWHny"
+    );
   }
 
   async getPythPrice(priceAccount: PublicKey): Promise<number> {
@@ -31,10 +35,10 @@ export class PriceFeedManager {
       // Parse Pyth price data (simplified)
       // In a real implementation, you'd use the Pyth SDK
       const data = accountInfo.data;
-      
+
       // This is a placeholder - use actual Pyth SDK for proper parsing
       const price = 50.0; // Placeholder price
-      
+
       return price;
     } catch (error) {
       console.error("Failed to fetch Pyth price:", error);
@@ -42,13 +46,17 @@ export class PriceFeedManager {
     }
   }
 
-  async getJupiterPrice(inputMint: PublicKey, outputMint: PublicKey, amount: number): Promise<number> {
+  async getJupiterPrice(
+    inputMint: PublicKey,
+    outputMint: PublicKey,
+    amount: number
+  ): Promise<number> {
     try {
       // Use Jupiter Price API
       const response = await fetch(
         `https://price.jup.ag/v4/price?ids=${inputMint.toString()}&vsToken=${outputMint.toString()}`
       );
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch Jupiter price");
       }
@@ -66,7 +74,7 @@ export class PriceFeedManager {
       const response = await fetch(
         `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`
       );
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch CoinGecko price");
       }
@@ -80,7 +88,7 @@ export class PriceFeedManager {
   }
 
   async getComprehensivePriceData(
-    tokenA: PublicKey, 
+    tokenA: PublicKey,
     tokenB: PublicKey,
     pythAccountA?: PublicKey,
     pythAccountB?: PublicKey
@@ -96,34 +104,40 @@ export class PriceFeedManager {
 
       // Jupiter prices
       promises.push(this.getJupiterPrice(tokenA, tokenB, 1));
-      
+
       // Pyth prices if available
       if (pythAccountA) {
         promises.push(this.getPythPrice(pythAccountA));
       }
-      
+
       if (pythAccountB) {
         promises.push(this.getPythPrice(pythAccountB));
       }
 
       // CoinGecko as fallback for major tokens
-      if (tokenA.toString() === "So11111111111111111111111111111111111111112") { // SOL
+      if (tokenA.toString() === "So11111111111111111111111111111111111111112") {
+        // SOL
         promises.push(this.getCoinGeckoPrice("solana"));
       }
-      
-      if (tokenB.toString() === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v") { // USDC
+
+      if (
+        tokenB.toString() === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+      ) {
+        // USDC
         promises.push(this.getCoinGeckoPrice("usd-coin"));
       }
 
       const results = await Promise.allSettled(promises);
       const successfulResults = results
-        .filter(result => result.status === "fulfilled")
-        .map(result => (result as PromiseFulfilledResult<number>).value)
-        .filter(price => price > 0);
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => (result as PromiseFulfilledResult<number>).value)
+        .filter((price) => price > 0);
 
       if (successfulResults.length > 0) {
         // Use average of successful price fetches
-        tokenAPrice = successfulResults.reduce((sum, price) => sum + price, 0) / successfulResults.length;
+        tokenAPrice =
+          successfulResults.reduce((sum, price) => sum + price, 0) /
+          successfulResults.length;
         tokenBPrice = 1; // Assuming token B is the base (like USDC)
         confidence = Math.min(successfulResults.length * 25, 100); // More sources = higher confidence
       }
@@ -152,7 +166,7 @@ export class PriceFeedManager {
     intervalMs: number = 30000 // 30 seconds
   ): Promise<NodeJS.Timeout> {
     console.log("Starting price monitoring...");
-    
+
     const interval = setInterval(async () => {
       try {
         const priceData = await this.getComprehensivePriceData(tokenA, tokenB);
