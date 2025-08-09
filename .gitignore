@@ -1,0 +1,31 @@
+.anchor
+.DS_Store
+target
+**/*.rs.bk
+node_modules
+test-ledger
+.yarn
+
+# Additional build and temp files
+*.log
+.env
+.env.local
+.vscode/
+.idea/
+dist/
+build/
+coverage/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# Anchor specific
+.anchor/
+test-ledger/
+
+# Cargo
+Cargo.lock
+
+# IDL files (generated)
+target/
