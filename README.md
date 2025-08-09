@@ -231,9 +231,28 @@ Price feeds are aggregated with confidence scoring to ensure reliability.
 The bot supports various monitoring options:
 
 - **Console Logging**: Detailed operation logs
-- **Discord/Telegram**: Real-time alerts
+- **Telegram Bot**: Real-time alerts and bot management
 - **Webhook Integration**: Custom alert endpoints
 - **Metrics Export**: Prometheus-compatible metrics
+
+### Telegram Bot Integration
+
+The bot includes a Telegram bot for real-time monitoring and control:
+
+```bash
+# Set up your Telegram bot token
+export TELEGRAM_BOT_TOKEN=your_bot_token_here
+export TELEGRAM_CHAT_ID=your_chat_id_here
+
+# Run the telegram bot
+npm run telegram-bot
+```
+
+Features:
+- Real-time trade notifications
+- Bot status monitoring
+- Performance metrics
+- Emergency controls
 
 ## Contributing
 

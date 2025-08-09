@@ -125,11 +125,7 @@ async function testLocalnet() {
 // Run test
 testLocalnet()
   .then((botAccount) => {
-    console.log("\n📝 Next steps:");
-    console.log("1. Start the web server with this bot:");
-    console.log(`   SOLANA_RPC_URL=http://localhost:8899 npm run web-server -- ${botAccount}`);
-    console.log("2. Open the web UI:");
-    console.log("   npm run web");
-    console.log("3. Visit: http://localhost:3000");
+    console.log("\n📝 Bot Account created:", botAccount);
+    console.log("Use this account with the telegram bot or monitoring scripts");
   })
   .catch(console.error);
