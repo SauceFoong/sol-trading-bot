@@ -7,10 +7,15 @@
     "monitor": "npx ts-node app/simple-monitor.ts",
     "deploy-test": "npx ts-node app/deploy-test.ts",
     "telegram-bot": "npx ts-node app/simple-telegram-bot.ts",
-    "telegram-bot-full": "npx ts-node app/telegram-bot-runner.ts"
+    "telegram-bot-full": "npx ts-node app/telegram-bot-runner.ts",
+    "jupiter-bot": "npx ts-node app/jupiter-bot-runner.ts",
+    "mainnet-bot": "npx ts-node app/mainnet-jupiter-bot.ts",
+    "mainnet-telegram": "npx ts-node app/mainnet-telegram-bot.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
+    "@jup-ag/api": "^6.0.44",
+    "@solana/spl-token": "^0.4.13",
     "dotenv": "^17.2.1",
     "telegraf": "^4.16.3"
   },

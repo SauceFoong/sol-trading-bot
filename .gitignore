@@ -29,3 +29,12 @@ Cargo.lock
 
 # IDL files (generated)
 target/
+
+# 🔐 SECURITY: NEVER COMMIT PRIVATE KEYS OR SECRETS 🔐
+id.json
+id-backup.json
+*keypair*.json
+*.key
+*.pem
+mainnet-*.json
+devnet-*.json
