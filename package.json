@@ -6,11 +6,8 @@
     "test-strategies": "npx ts-node app/simple-test.ts",
     "monitor": "npx ts-node app/simple-monitor.ts",
     "deploy-test": "npx ts-node app/deploy-test.ts",
-    "telegram-bot": "npx ts-node app/simple-telegram-bot.ts",
-    "telegram-bot-full": "npx ts-node app/telegram-bot-runner.ts",
-    "jupiter-bot": "npx ts-node app/jupiter-bot-runner.ts",
     "mainnet-bot": "npx ts-node app/mainnet-jupiter-bot.ts",
-    "mainnet-telegram": "npx ts-node app/mainnet-telegram-bot.ts"
+    "trading-bot": "npx ts-node app/optimized-mainnet-bot.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
